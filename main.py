@@ -79,7 +79,7 @@ while running:
             sound.stop()
 
     if status == "prepare":
-        screen.fill((0, 0, 0))
+        screen.fill(ALL_COLORS[4])
         loading += 1
         if loading >= 25:
             status = "play"
@@ -87,6 +87,7 @@ while running:
     if status == "play":
         background = pygame.image.load("play.png").convert()
         screen.blit(background, (0, 0))
+
 
     pygame.display.flip()  # update the window
     clock.tick(FPS)
