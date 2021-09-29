@@ -8,6 +8,9 @@ from random import randint
 
 pygame.init()  # connect all functions of libruary
 
+def buble(x, y, i):
+    screen.blit(ALL_BUBLE_IMG[i], (x, y))
+
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -27,6 +30,21 @@ FPS = 70 # how often cadrs will change
 clock = pygame.time.Clock()
 
 sound = pygame.mixer.Sound("sound.mp3")
+
+ALL_BUBLE_IMG = []
+ALL_BUBLEX = []
+ALL_BUBLEY = []
+ALL_BUBLEX_CHANGE = []
+ALL_BUBLEY_CHANGE = []
+num_of_bubles = 10
+
+for i in range(num_of_bubles):
+    image = pygame.image.load("buble.png")
+    ALL_BUBLE_IMG.append(image)
+    ALL_BUBLEX.append(randint(0, 800))
+    ALL_BUBLEY.append(randint(0, 600))
+    ALL_BUBLEX_CHANGE.append(4)
+    ALL_BUBLEY_CHANGE.append(40)
 
 timer = 0
 loading = 0
@@ -74,6 +92,19 @@ while running:
         background = pygame.image.load("background.png").convert()
         screen.blit(background, (0, 0))
         timer += 1
+
+        for i in range(num_of_bubles):
+            ALL_BUBLEX[i] += ALL_BUBLEX_CHANGE[i]
+            if ALL_BUBLEX[i] <= 0:
+                ALL_BUBLEX_CHANGE[i] = 4
+                ALL_BUBLEY[i] += ALL_BUBLEY_CHANGE[i]
+            elif ALL_BUBLEX[i] >= 800:
+                ALL_BUBLEY_CHANGE[i] = -4
+                ALL_BUBLEY[i] += ALL_BUBLEY_CHANGE[i]
+            buble(ALL_BUBLEX[i], ALL_BUBLEY[i], i)
+
+
+
         if timer > 650:
             status = "prepare"
             sound.stop()
