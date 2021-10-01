@@ -118,16 +118,14 @@ while running:
                 ALL_BUBLEX_CHANGE[i] = -randint(2, 6)
                 ALL_BUBLEX[i] += ALL_BUBLEX_CHANGE[i]
 
-
-
-        if timer > 650:
+        if timer > 500:
             status = "prepare"
-            sound.stop()
 
     if status == "prepare":
         screen.fill(ALL_COLORS[4])
         loading += 1
-        if loading >= 25:
+        if loading >= 15:
+            sound.stop()
             status = "play"
 
     if status == "play":
