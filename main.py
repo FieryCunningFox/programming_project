@@ -36,14 +36,14 @@ ALL_BUBLEX = []
 ALL_BUBLEY = []
 ALL_BUBLEX_CHANGE = []
 ALL_BUBLEY_CHANGE = []
-num_of_bubles = 10
+num_of_bubles = 40
 
 for i in range(num_of_bubles):
-    image = pygame.image.load("buble.png")
+    image = pygame.image.load("ghost.png")
     ALL_BUBLE_IMG.append(image)
-    ALL_BUBLEX.append(randint(0, 800))
-    ALL_BUBLEY.append(randint(0, 600))
-    ALL_BUBLEX_CHANGE.append(4)
+    ALL_BUBLEX.append(randint(20, 780))
+    ALL_BUBLEY.append(randint(20, 550))
+    ALL_BUBLEX_CHANGE.append(5)
     ALL_BUBLEY_CHANGE.append(40)
 
 timer = 0
@@ -95,13 +95,28 @@ while running:
 
         for i in range(num_of_bubles):
             ALL_BUBLEX[i] += ALL_BUBLEX_CHANGE[i]
+            ALL_BUBLEY[i] += ALL_BUBLEY_CHANGE[i]
             if ALL_BUBLEX[i] <= 0:
-                ALL_BUBLEX_CHANGE[i] = 4
+                ALL_BUBLEX_CHANGE[i] = randint(2, 6)
+                ALL_BUBLEX[i] += ALL_BUBLEX_CHANGE[i]
+                ALL_BUBLEY_CHANGE[i] = -randint(2, 6)
                 ALL_BUBLEY[i] += ALL_BUBLEY_CHANGE[i]
             elif ALL_BUBLEX[i] >= 800:
-                ALL_BUBLEY_CHANGE[i] = -4
+                ALL_BUBLEX_CHANGE[i] = -randint(2, 6)
+                ALL_BUBLEX[i] += ALL_BUBLEX_CHANGE[i]
+                ALL_BUBLEY_CHANGE[i] = randint(2, 6)
                 ALL_BUBLEY[i] += ALL_BUBLEY_CHANGE[i]
             buble(ALL_BUBLEX[i], ALL_BUBLEY[i], i)
+            if ALL_BUBLEY[i] <= 0:
+                ALL_BUBLEY_CHANGE[i] = randint(2, 6)
+                ALL_BUBLEY[i] += ALL_BUBLEY_CHANGE[i]
+                ALL_BUBLEX_CHANGE[i] = randint(2, 6)
+                ALL_BUBLEX[i] += ALL_BUBLEX_CHANGE[i]
+            elif ALL_BUBLEY[i] >= 600:
+                ALL_BUBLEY_CHANGE[i] = -randint(2, 6)
+                ALL_BUBLEY[i] += ALL_BUBLEY_CHANGE[i]
+                ALL_BUBLEX_CHANGE[i] = -randint(2, 6)
+                ALL_BUBLEX[i] += ALL_BUBLEX_CHANGE[i]
 
 
 
