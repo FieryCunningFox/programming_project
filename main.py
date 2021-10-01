@@ -69,6 +69,8 @@ while running:
     pressed_keys = pygame.key.get_pressed()
 
     screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])  # set screen
+    icon = pygame.image.load("icon.png").convert()
+    pygame.display.set_icon(icon)
 
     if status == "menu":
         pygame.display.set_caption("PATRIK")
