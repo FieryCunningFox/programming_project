@@ -1,11 +1,13 @@
 import pygame
 import random
 import sys
+import math
 
 from pygame.locals import (K_UP, K_DOWN, K_LEFT, K_RIGHT, K_ESCAPE, KEYDOWN, QUIT,
                            RLEACCEL, )  # Import pygame.locals for easier access to key coordinates
 from pygame.locals import *
 from random import randint
+from math import sqrt, pow
 
 pygame.init()  # connect all functions of libruary
 
@@ -21,14 +23,21 @@ def jump():
     if jump_counter >= -30:
         user_y -= jump_counter // 2.5
         jump_counter -= 1
-        if user_y >= 400:
-            user_y = 400
+        if user_y >= 480:
+            user_y = 480
     else:
         jump_counter = 30
         make_jump = False
-        if user_y >= 400:
-            user_y = 400
+        if user_y >= 480:
+            user_y = 480
 
+
+def isCollision(user_x, user_y, cactus_x, cactus_y):
+    distance = sqrt(pow((user_x + 32 - cactus_x), 2) + pow((user_y - cactus_y), 2))
+    if distance < 150:
+        return True
+    else:
+        return False
 
 
 # size of display
@@ -36,18 +45,17 @@ SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 
 # dino in playing
-user_width = 60
-user_height = 100
 user_x = SCREEN_WIDTH // 4
-user_y = 400
+user_y = SCREEN_HEIGHT - 120
 
-cactus_width = 20
-cactus_height = 70
-cactus_x = SCREEN_WIDTH - 50
-cactus_y = SCREEN_HEIGHT - cactus_height - 100
-num_of_cactus = 7
+cactus_x = SCREEN_WIDTH - 50  # blocks
+cactus_y = SCREEN_HEIGHT - 150
+num_of_cactus = 3
 all_cactus = []
+for i in range(num_of_cactus):
+    all_cactus.append([cactus_x + i * randint(200, 350), cactus_y - randint(0, 50)])
 
+floor_x = 0  # position of ground
 
 make_jump = False
 jump_counter = 30
@@ -75,7 +83,7 @@ ALL_BUBLEX = []
 ALL_BUBLEY = []
 ALL_BUBLEX_CHANGE = []
 ALL_BUBLEY_CHANGE = []
-num_of_bubles = 40
+num_of_bubles = 50
 
 # loading animation
 for i in range(num_of_bubles):
@@ -118,7 +126,6 @@ while running:
                     counter += 1
                     status = "loading"
                     sound.play()
-
 
     screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])  # set screen
     icon = pygame.image.load("icon.png").convert()
@@ -198,15 +205,31 @@ while running:
         if make_jump == True:
             jump()
 
-        pygame.draw.rect(screen, (ALL_COLORS[5]), (user_x, user_y, user_width, user_height))
-
-        if cactus_x >= -cactus_width:
-            pygame.draw.rect(screen, (255, 255, 255), (cactus_x, cactus_y, cactus_width, cactus_height))
-            cactus_x -= 4
-        else:
-            cactus_x = SCREEN_WIDTH - 50
+        user = pygame.image.load("ufo.png").convert()
+        user_rect = user.get_rect(center=(user_x, user_y))
+        user.set_colorkey((255, 255, 255))
+        screen.blit(user, user_rect)
 
 
+        block = pygame.image.load("block.png").convert_alpha()
+        block.set_colorkey((255, 255, 255))
+        for i in range(num_of_cactus):
+            collision = isCollision(user_x, user_y, all_cactus[i][0], all_cactus[i][1])
+            if collision:
+                status = "prepare"
+            if all_cactus[i][0] >= -50:
+                screen.blit(block, (all_cactus[i][0], all_cactus[i][1]))
+                all_cactus[i][0] -= 4
+            else:
+                all_cactus[i][0] = SCREEN_WIDTH + 20
+
+
+        floor = pygame.image.load("ground.png")
+        floor_x -= 4
+        screen.blit(floor, (floor_x, 500))
+        screen.blit(floor, (floor_x + 800, 500))
+        if floor_x <= -800:  # moving ground
+            floor_x = 0
 
     pygame.display.flip()  # update the window
     clock.tick(FPS)
