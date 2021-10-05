@@ -13,26 +13,52 @@ pygame.init()  # connect all functions of libruary
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 
+def print_text(message, x, y, font_color=(0, 0, 0), font_type = "PingPong.ttf", font_size = 30):
+    global screen
+    font_type = pygame.font.Font(font_type, font_size)
+    text = font_type.render(message, True, font_color)
+    screen.blit(text, (x, y))
+
+
+def pause():
+    global running
+    paused = True
+    while paused:
+        print_text("Paused. Press Enter to continue...", 160, 300)
+        for event in pygame.event.get():  # events
+            if event.type == pygame.KEYDOWN:  # events of keyboard
+                if event.key == K_ESCAPE:  # exit with key esc
+                    paused = False
+                    running = False
+                if event.key == pygame.K_RETURN:
+                    paused = False
+            elif event.type == pygame.QUIT:
+                paused = False
+                running = False
+        pygame.display.update()
+        clock.tick(15)
 
 # MINI GAME DINO
 def jump():
     global user_y, jump_counter, make_jump
-    if jump_counter >= -35:
+    if jump_counter >= -30:
         user_y -= jump_counter / 2.5
         jump_counter -= 1
         if user_y >= 480:
             user_y = 480
     else:
-        jump_counter = 35
+        jump_counter = 30
         make_jump = False
         if user_y >= 480:
             user_y = 480
 
+
 # dino in playing
 user_x = SCREEN_WIDTH // 4
-user_y = SCREEN_HEIGHT - 120
+user_y = SCREEN_HEIGHT - 198
 
-class Cactus:
+
+class Object:
     def __init__(self, x, y, width, image, speed):
         self.x = x
         self.y = y
@@ -52,23 +78,23 @@ class Cactus:
 
 def creat_cactus_arr(array):
     global cactus_image, cactus_option, SCREEN_WIDTH
-    choice = randint(0, 2)  #first
+    choice = randint(0, 2)  # first
     img = cactus_image[choice]
     width = cactus_option[choice * 2]
     height = cactus_option[choice * 2 + 1]
-    array.append(Cactus(SCREEN_WIDTH + 20, height, width, img, 4))
+    array.append(Object(SCREEN_WIDTH + 20, height, width, img, 4))
 
     choice = randint(0, 2)  # second
     img = cactus_image[choice]
     width = cactus_option[choice * 2]
     height = cactus_option[choice * 2 + 1]
-    array.append(Cactus(SCREEN_WIDTH + 300, height, width, img, 4))
+    array.append(Object(SCREEN_WIDTH + 300, height, width, img, 4))
 
     choice = randint(0, 2)  # third
     img = cactus_image[choice]
     width = cactus_option[choice * 2]
     height = cactus_option[choice * 2 + 1]
-    array.append(Cactus(SCREEN_WIDTH + 600, height, width, img, 4))
+    array.append(Object(SCREEN_WIDTH + 600, height, width, img, 4))
 
     return array
 
@@ -91,6 +117,7 @@ def find_radius(array):
         radius += randint(200, 350)
     return radius
 
+
 def draw_array(array):
     global cactus_option, cactus_image, SCREEN_WIDTH
     for i in range(3):
@@ -102,13 +129,22 @@ def draw_array(array):
             img = cactus_image[choice]
             width = cactus_option[choice * 2]
             height = cactus_option[choice * 2 + 1]
-            array[i] = (Cactus(SCREEN_WIDTH + 100 + randint(-80, 60), height, width, img, 4))
+            array[i] = (Object(SCREEN_WIDTH + 100 + randint(-80, 60), height, width, img, 4))
     return array
+
+
+def draw_dino():
+    global img_count, user_x, user_y, DINO_img
+    if img_count == 25:
+        img_count = 0
+
+    screen.blit(DINO_img[img_count // 5], (user_x, user_y))
+    img_count += 1
 
 
 BLOCKS = []  # list of bloks for dino
 cactus_image = []
-cactus_option = [50, 400, 80, 352, 60, 450, 40, 450]
+cactus_option = [50, 400, 80, 370, 60, 450]
 
 block = pygame.image.load("block.png")
 block.set_colorkey((255, 255, 255))
@@ -119,17 +155,32 @@ cactus_image.append(block2)
 block3 = pygame.image.load("block3.png")
 block3.set_colorkey((255, 255, 255))
 cactus_image.append(block3)
-block4 = pygame.image.load("block4.png")
-block4.set_colorkey((255, 255, 255))
-cactus_image.append(block4)
 
+OBJ_cloud = SCREEN_WIDTH + 10
+y_cloud = 80
+cloud_img = []
+cloud1 = pygame.image.load("sky1.png")
+cloud1.set_colorkey((255, 255, 255))
+cloud2 = pygame.image.load("sky2.png")
+cloud2.set_colorkey((255, 255, 255))
+cloud_img.append(cloud1)
+cloud_img.append(cloud2)
+choice = 0  # change kind of clouds
+
+img_count = 0
+DINO_img = []
+DINO_img.append(pygame.image.load("Dino0.png"))
+DINO_img.append(pygame.image.load("Dino1.png"))
+DINO_img.append(pygame.image.load("Dino2.png"))
+DINO_img.append(pygame.image.load("Dino3.png"))
+DINO_img.append(pygame.image.load("Dino4.png"))
 
 BLOCKS = creat_cactus_arr(BLOCKS)
 
 floor_x = 0  # position of ground FOR MOVING
 
 make_jump = False  # DINO jump
-jump_counter = 35
+jump_counter = 30
 
 
 # FOR LOADING
@@ -190,7 +241,10 @@ while running:
                 counter -= 1
                 status = Status[counter]
             if event.key == pygame.K_SPACE:
-                make_jump = True
+                if counter == 4:
+                    make_jump = True
+            if event.key == pygame.K_RETURN:
+                pause()
 
         elif event.type == pygame.QUIT:
             running = False
@@ -281,12 +335,9 @@ while running:
         if make_jump == True:
             jump()
 
-        user = pygame.image.load("ufo.png").convert()
-        user_rect = user.get_rect(center=(user_x, user_y))
-        user.set_colorkey((255, 255, 255))
-        screen.blit(user, user_rect)
+        draw_dino()
 
-        draw_array(BLOCKS)
+        BLOCKS = draw_array(BLOCKS)
 
         floor = pygame.image.load("ground.png")
         floor_x -= 4
@@ -295,6 +346,14 @@ while running:
         if floor_x <= -800:  # moving ground
             floor_x = 0
 
+        image_cloud = cloud_img[choice]
+        if OBJ_cloud >= -80:
+            screen.blit(image_cloud, (OBJ_cloud, y_cloud))
+            OBJ_cloud -= 2
+        else:
+            OBJ_cloud = SCREEN_WIDTH + 40 + randint(-30, 50)
+            y_cloud = randint(50, 250)
+            choice = 1
     pygame.display.flip()  # update the window
     clock.tick(FPS)
 
