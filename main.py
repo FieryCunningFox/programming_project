@@ -20,6 +20,13 @@ def print_text(message, x, y, font_color=(0, 0, 0), font_type = "PingPong.ttf", 
     screen.blit(text, (x, y))
 
 
+def print_message(message, x, y, font_color=(0, 0, 0), font_type = "message.otf", font_size = 25):
+    global screen
+    font_type = pygame.font.Font(font_type, font_size)
+    text = font_type.render(message, True, font_color)
+    screen.blit(text, (x, y))
+
+
 def pause():
     global running
     paused = True
@@ -37,6 +44,26 @@ def pause():
                 running = False
         pygame.display.update()
         clock.tick(15)
+
+def game_over():
+    global running
+    OVER = True
+    while OVER:
+        print_text("Press Enter to continue...", 160, 300)
+        for event in pygame.event.get():  # events
+            if event.type == pygame.KEYDOWN:  # events of keyboard
+                if event.key == K_ESCAPE:  # exit with key esc
+                    OVER = False
+                    running = False
+                if event.key == pygame.K_RETURN:
+                    OVER = False
+            elif event.type == pygame.QUIT:
+                OVER = False
+                running = False
+        pygame.display.update()
+        clock.tick(15)
+
+    print_text("YOUR SCORE:", 160, 300)
 
 # MINI GAME DINO
 def jump():
@@ -142,6 +169,17 @@ def draw_dino():
     img_count += 1
 
 
+#def check_collission(barriers):
+ #   for barrier in barries:
+  #      if user_y + 98 >= barrier.y:
+   #         if barrier.x <= user_x <barrier.width:
+    #            return True
+     #       elif barrier.x <= user_x + 98 <barrier.width:
+      #          return True
+   # return False
+
+
+
 BLOCKS = []  # list of bloks for dino
 cactus_image = []
 cactus_option = [50, 400, 80, 370, 60, 450]
@@ -182,6 +220,25 @@ floor_x = 0  # position of ground FOR MOVING
 make_jump = False  # DINO jump
 jump_counter = 30
 
+# FORTUNE SCENE
+fortune_wheel = []
+rul_counter = 0
+flag = 0
+fortune_text = ["YOU WIN! + 1000", "SORRY, -100", "GOOD LUCK! + 50", "NOT AFRAID, - 150", "IT IS SO GOOD, + 10"]
+fortune_score = [1000, -100, 50, -150, 10]
+message_counter = len(fortune_text)
+ruletka1 = pygame.image.load("ruletka.png")  # 1
+ruletka1.set_colorkey((255, 255, 255))
+ruletka2 = pygame.image.load("ruletka2.png")  # 2
+ruletka2.set_colorkey((255, 255, 255))
+ruletka3 = pygame.image.load("ruletka3.png")  # 3
+ruletka3.set_colorkey((255, 255, 255))
+ruletka4 = pygame.image.load("ruletka4.png")  # 4
+ruletka4.set_colorkey((255, 255, 255))
+fortune_wheel.append(ruletka1)
+fortune_wheel.append(ruletka2)
+fortune_wheel.append(ruletka3)
+fortune_wheel.append(ruletka4)
 
 # FOR LOADING
 def buble(x, y, i):
@@ -224,10 +281,11 @@ sound = pygame.mixer.Sound("sound.mp3")
 # counters of scene
 timer = 0
 loading = 0
-Status = ["menu", "loading", "prepare", "play", "dino"]
+Status = ["menu", "loading", "prepare", "play", "dino", "fortune", "move_return", "prison"]
 counter = 0
 status = Status[counter]
 
+score = 0
 running = True
 while running:
     for event in pygame.event.get():  # events
@@ -250,12 +308,45 @@ while running:
             running = False
 
         if event.type == pygame.MOUSEBUTTONDOWN:  # click button
-            if pygame.mouse.get_pos() >= (150, 230):
-                if pygame.mouse.get_pos() <= (250, 280):
-                    menu_sound.stop()
-                    counter += 1
-                    status = "loading"
-                    sound.play()
+            if pygame.mouse.get_pos() >= (650, 252):
+                if pygame.mouse.get_pos() <= (752, 349):
+                    if counter == 0:
+                        menu_sound.stop()
+                        counter += 1
+                        status = "loading"
+                        sound.play()
+            if counter == 3:
+                if pygame.mouse.get_pos() >= (50, 50):
+                    if pygame.mouse.get_pos() <= (170, 120):
+                        counter += 1
+                        status ="dino"
+                if pygame.mouse.get_pos() >= (170, 100):
+                    if pygame.mouse.get_pos() <= (290, 170):
+                        counter += 2
+                        status = "fortune"
+                if pygame.mouse.get_pos() >= (130, 170):
+                    if pygame.mouse.get_pos() <= (220, 280):
+                        counter += 3
+                        status = "move_return"
+                if pygame.mouse.get_pos() >= (220, 170):
+                    if pygame.mouse.get_pos() <= (290, 310):
+                        counter += 4
+                        status = "prison"
+                if flag == 1:
+                    if pygame.mouse.get_pos() >= (250, 250):
+                        if pygame.mouse.get_pos() <= (550, 450):
+                            flag = 0
+
+            if counter == 5:
+                if pygame.mouse.get_pos() >= (200, 150):
+                    if pygame.mouse.get_pos() <= (400, 550):
+                        counter = 3
+                        status = "play"
+                        flag = 1
+                        vivod = randint(0, message_counter - 1)
+                        current_fortune_score = fortune_score[vivod]
+                        score += current_fortune_score
+
 
     screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])  # set screen
     icon = pygame.image.load("icon.png").convert()
@@ -267,11 +358,10 @@ while running:
         screen.blit(background, (0, 0))
         menu_sound.play()
 
-        start_button = pygame.draw.rect(screen, (0, 0, 240), (150, 90, 100, 50))
-        continue_button = pygame.draw.rect(screen, (0, 244, 0), (150, 160, 100, 50))
-        quit_button = pygame.draw.rect(screen, (244, 0, 0), (150, 230, 100, 50))
+        button = pygame.image.load("pusk.png")
+        screen.blit(button, (650, 252))
 
-        pygame.draw.circle(screen, (ALL_COLORS[randint(0, 7)]), (100, 100), 30)
+        pygame.draw.circle(screen, (ALL_COLORS[randint(0, 7)]), (100, 100), 30)  # gosts
         pygame.draw.circle(screen, (ALL_COLORS[randint(0, 7)]), (700, 500), 30)
         pygame.draw.circle(screen, (ALL_COLORS[randint(0, 7)]), (700, 100), 30)
         pygame.draw.circle(screen, (ALL_COLORS[randint(0, 7)]), (100, 500), 30)
@@ -325,8 +415,27 @@ while running:
     if status == "play":
         background = pygame.image.load("play.png").convert()
         screen.blit(background, (0, 0))
-        counter += 1
-        status = "dino"
+        start_dino = pygame.image.load("first.png")
+        screen.blit(start_dino, (50, 50))
+        start_fortune = pygame.image.load("second.png")
+        screen.blit(start_fortune, (170, 100))
+        start_return = pygame.image.load("third.png")
+        screen.blit(start_return, (130, 170))
+        start_prison = pygame.image.load("forth.png")
+        screen.blit(start_prison, (220, 170))
+
+        score_message = pygame.image.load("score.png")
+        score_message.set_colorkey((255, 255, 255))
+        screen.blit(score_message, (550, 20))
+        print_text(str(score), 600, 70)
+
+
+        if flag == 1: # print message from fortune
+            fortune_message = pygame.image.load("fortune_message.png")
+            screen.blit(fortune_message, (250, 250))
+            current_fortune_score = fortune_score[vivod]
+            print_message(fortune_text[vivod], 280, 300)
+
 
     if status == "dino":
         background = pygame.image.load("play.png").convert()
@@ -334,6 +443,9 @@ while running:
 
         if make_jump == True:
             jump()
+
+        #if check_collission(BLOCKS):
+            #game_over()
 
         draw_dino()
 
@@ -347,13 +459,32 @@ while running:
             floor_x = 0
 
         image_cloud = cloud_img[choice]
-        if OBJ_cloud >= -80:
+        if OBJ_cloud >= -120:
             screen.blit(image_cloud, (OBJ_cloud, y_cloud))
             OBJ_cloud -= 2
         else:
             OBJ_cloud = SCREEN_WIDTH + 40 + randint(-30, 50)
             y_cloud = randint(50, 250)
             choice = 1
+
+    if status == "fortune":
+        flag = 0
+        background = pygame.image.load("fortune.png")
+        screen.blit(background, (0, 0))
+        screen.blit(fortune_wheel[rul_counter//5],(200, 150))
+        rul_counter += 1
+        if rul_counter >= 19:
+            rul_counter = 0
+
+    if status == "move_return":
+        background = pygame.image.load("change_move.png")
+        screen.blit(background, (0, 0))
+
+    if status == "prison":
+        background = pygame.image.load("prison.png")
+        screen.blit(background, (0, 0))
+
+
     pygame.display.flip()  # update the window
     clock.tick(FPS)
 
