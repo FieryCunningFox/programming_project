@@ -315,7 +315,7 @@ while running:
                         counter += 1
                         status = "loading"
                         sound.play()
-            if counter == 3:
+            if counter == 3:  # play menu, main map of the game
                 if pygame.mouse.get_pos() >= (50, 50):
                     if pygame.mouse.get_pos() <= (170, 120):
                         counter += 1
@@ -332,12 +332,17 @@ while running:
                     if pygame.mouse.get_pos() <= (290, 310):
                         counter += 4
                         status = "prison"
-                if flag == 1:
+                if pygame.mouse.get_pos() >= (30, 470):  # push cubics, get random game
+                    if pygame.mouse.get_pos() <= (130, 570):
+                        counter = randint(3, 7)
+                        status = Status[counter]
+
+                if flag == 1:  # when the message of fortune
                     if pygame.mouse.get_pos() >= (250, 250):
                         if pygame.mouse.get_pos() <= (550, 450):
                             flag = 0
 
-            if counter == 5:
+            if counter == 5:  # the wheel of fortune
                 if pygame.mouse.get_pos() >= (200, 150):
                     if pygame.mouse.get_pos() <= (400, 550):
                         counter = 3
@@ -346,6 +351,18 @@ while running:
                         vivod = randint(0, message_counter - 1)
                         current_fortune_score = fortune_score[vivod]
                         score += current_fortune_score
+
+            if counter == 6:  # change move to next player or next game
+                if pygame.mouse.get_pos() > (0, 0):
+                    if pygame.mouse.get_pos() < (800, 600):
+                        counter = 3
+                        status = Status[counter]
+
+            if counter == 7:  # exit from prison
+                if pygame.mouse.get_pos() >= (prison_x, prison_y):
+                    if pygame.mouse.get_pos() <= (prison_x + 30, prison_y + 24):
+                        counter = 3
+                        status = Status[counter]
 
 
     screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])  # set screen
@@ -429,6 +446,12 @@ while running:
         screen.blit(score_message, (550, 20))
         print_text(str(score), 600, 70)
 
+        kubs = pygame.image.load("kubics.png")
+        screen.blit(kubs, (30, 470))
+
+        prison_x = randint(0, 800)
+        prison_y = randint(0, 600)
+
 
         if flag == 1: # print message from fortune
             fortune_message = pygame.image.load("fortune_message.png")
@@ -477,12 +500,16 @@ while running:
             rul_counter = 0
 
     if status == "move_return":
+        counter = 6
         background = pygame.image.load("change_move.png")
         screen.blit(background, (0, 0))
 
     if status == "prison":
+        counter = 7
         background = pygame.image.load("prison.png")
         screen.blit(background, (0, 0))
+        prison_exit = pygame.image.load("go_out.png")
+        screen.blit(prison_exit, (prison_x, prison_y))
 
 
     pygame.display.flip()  # update the window
