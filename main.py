@@ -27,6 +27,13 @@ def print_message(message, x, y, font_color=(0, 0, 0), font_type = "message.otf"
     screen.blit(text, (x, y))
 
 
+def print_score(message, x, y, font_color=(0, 0, 0), font_type = "score.ttf", font_size = 35):
+    global screen
+    font_type = pygame.font.Font(font_type, font_size)
+    text = font_type.render(message, True, font_color)
+    screen.blit(text, (x, y))
+
+
 def pause():
     global running
     paused = True
@@ -454,7 +461,7 @@ while running:
         score_message = pygame.image.load("score.png")
         score_message.set_colorkey((255, 255, 255))
         screen.blit(score_message, (550, 20))
-        print_text(str(score), 600, 70)
+        print_score(str(score), 600, 70)
 
         kubs = pygame.image.load("kubics.png")
         screen.blit(kubs, (30, 470))
