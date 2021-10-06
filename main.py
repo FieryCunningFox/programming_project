@@ -285,6 +285,8 @@ Status = ["menu", "loading", "prepare", "play", "dino", "fortune", "move_return"
 counter = 0
 status = Status[counter]
 
+prison_score = 0
+
 score = 0
 running = True
 while running:
@@ -342,6 +344,12 @@ while running:
                         if pygame.mouse.get_pos() <= (550, 450):
                             flag = 0
 
+                if flag == 2:  # when the message of prison
+                    if pygame.mouse.get_pos() >= (250, 250):
+                        if pygame.mouse.get_pos() <= (550, 450):
+                            flag = 0
+                            prison_score = 0
+
             if counter == 5:  # the wheel of fortune
                 if pygame.mouse.get_pos() >= (200, 150):
                     if pygame.mouse.get_pos() <= (400, 550):
@@ -361,8 +369,10 @@ while running:
             if counter == 7:  # exit from prison
                 if pygame.mouse.get_pos() >= (prison_x, prison_y):
                     if pygame.mouse.get_pos() <= (prison_x + 30, prison_y + 24):
+                        score += prison_score
                         counter = 3
                         status = Status[counter]
+                        flag = 2
 
 
     screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])  # set screen
@@ -453,11 +463,17 @@ while running:
         prison_y = randint(0, 600)
 
 
-        if flag == 1: # print message from fortune
+        if flag == 1:  # print message from fortune
             fortune_message = pygame.image.load("fortune_message.png")
             screen.blit(fortune_message, (250, 250))
             current_fortune_score = fortune_score[vivod]
-            print_message(fortune_text[vivod], 280, 300)
+            print_message(str(fortune_text[vivod]), 280, 300)
+
+        if flag == 2:  # print message from prison
+            prison_message = pygame.image.load("prison_message.png")
+            screen.blit(prison_message, (250, 250))
+            print_message("SORRY, YOU LOSE ", 280, 300)
+            print_message(str(prison_score), 320, 350)
 
 
     if status == "dino":
@@ -506,6 +522,7 @@ while running:
 
     if status == "prison":
         counter = 7
+        prison_score -= 5
         background = pygame.image.load("prison.png")
         screen.blit(background, (0, 0))
         prison_exit = pygame.image.load("go_out.png")
