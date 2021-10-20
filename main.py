@@ -677,6 +677,15 @@ while running:
                             else:
                                 player += 1
 
+                if flag == 5:  # when the message of birthday
+                    if pygame.mouse.get_pos() >= (260, 290):
+                        if pygame.mouse.get_pos() <= (520, 555):
+                            list_scores[player] += 150 * (num_of_players - 1)
+                            for i in range(num_of_players):
+                                if i != player:
+                                    list_scores[i] -= 150
+                            flag = 0
+
             if counter == 5:  # the wheel of fortune
                 if pygame.mouse.get_pos() >= (200, 150):
                     if pygame.mouse.get_pos() <= (400, 550):
@@ -715,13 +724,11 @@ while running:
             if counter == 10:  # birthday
                 if pygame.mouse.get_pos() >= (260, 290):
                     if pygame.mouse.get_pos() <= (520, 555):
-                        list_scores[player] += 150 * (num_of_players - 1)
-                        for i in range(num_of_players):
-                            if i != player:
-                                list_scores[i] -= 150
                         counter = 3
                         status = Status[counter]
                         flag = 5
+
+
 
         if counter == 2:  # check cursor
             if pygame.mouse.get_pos() >= (390, 180):  # selected 2
@@ -918,8 +925,8 @@ while running:
             print_message("you lose 200", 300, 350)
 
         if flag == 5:  # message from birthday
-            pass
-
+            background = pygame.image.load("present.png")
+            screen.blit(background, (0, 0))
 
     if status == "dino":
         background = pygame.image.load("play.png").convert()
