@@ -1,17 +1,25 @@
-import pygame
-import random, sys, math
-
-from pygame.locals import (K_UP, K_DOWN, K_LEFT, K_RIGHT, K_ESCAPE, KEYDOWN, QUIT,
-                           RLEACCEL, )  # Import pygame.locals for easier access to key coordinates
-from pygame.locals import *
+import datetime
+import time
 from random import randint
-from math import sqrt, pow
+
+import pygame
+from pygame.locals import *
 
 pygame.init()  # connect all functions of libruary
+pygame.font.init()
 
 # size of display
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
+
+def count_down():  # count down time of playing
+    global num_of_sec
+    while num_of_sec:
+        m, s = divmod(num_of_sec, 60)
+        min_sec_format = '{:02d}:{:02d}'.format(m, s)
+        time.sleep(1)
+        num_of_sec -= 1
+        return min_sec_format
 
 
 def print_text(message, x, y, font_color=(0, 0, 0), font_type="PingPong.ttf", font_size=30):
@@ -58,13 +66,14 @@ def pause():
 tile_size = 30
 game_over = 0
 
-class Player():  # CREAT PERSON
+
+class Player():  # CREATE PERSON
 
     def __init__(self, x, y):
         self.images_right = []
         self.images_left = []
         self.index = 0
-        self.counter = 0
+        self.counterp = 0
         for num in range(1, 5):
             img_right = pygame.image.load(f'guy{num}.png')
             img_right = pygame.transform.scale(img_right, (35, 65))
@@ -83,7 +92,6 @@ class Player():  # CREAT PERSON
         self.width = self.image.get_width()
         self.height = self.image.get_height()
 
-
     def update(self, game_over):
 
         walk_cooldown = 5
@@ -95,27 +103,28 @@ class Player():  # CREAT PERSON
             key = pygame.key.get_pressed()
             if key[pygame.K_j]:
                 dx -= 3
-                self.counter += 1
+                self.counterp += 1
                 self.direction -= 1
             if key[pygame.K_k]:
                 dx += 3
-                self.counter += 1
+                self.counterp += 1
                 self.direction = 1
             if key[pygame.K_SPACE] and self.jumped == False:
-                self.vel_y -= 11
-                self.jumped = True
+                if self.rect.y > 15:
+                    self.vel_y -= 11
+                    self.jumped = True
             if key[pygame.K_SPACE] == False:
                 self.jumped = False
-            if key[pygame.K_LEFT] == False and key[pygame.K_RIGHT] == False:
-                self.counter = 0
+            if key[pygame.K_j] == False and key[pygame.K_k] == False:
+                self.counterp = 0
                 self.direction = 0
                 if self.direction == 1:
                     self.images_right[self.index]
                 if self.direction == -1:
                     self.images_left[self.index]
 
-            if self.counter > walk_cooldown:
-                self.counter = 0
+            if self.counterp > walk_cooldown:
+                self.counterp = 0
                 self.index += 1
                 if self.index >= len(self.images_right):
                     self.index = 0
@@ -134,7 +143,7 @@ class Player():  # CREAT PERSON
                     dx = 0
                 if tile[1].colliderect(self.rect.x + dx, self.rect.y + dy, self.width, self.height):
                     if self.vel_y < 0:
-                        dx= tile[1].bottom - self.rect.top
+                        dx = tile[1].bottom - self.rect.top
                         self.vel_y = 0
                     elif self.vel_y >= 0:
                         dy = tile[1].top - self.rect.bottom
@@ -144,6 +153,8 @@ class Player():  # CREAT PERSON
                 game_over = -1
             if pygame.sprite.spritecollide(self, lava_group, False):
                 game_over = -1
+            if pygame.sprite.spritecollide(self, exit_group, False):
+                game_over = 1
 
             self.rect.x += dx
             self.rect.y += dy
@@ -155,7 +166,7 @@ class Player():  # CREAT PERSON
         elif game_over == -1:
             self.image = self.dead_image
             if self.rect.y > -50:
-                 self.rect.y -= 5
+                self.rect.y -= 5
 
         screen.blit(self.image, self.rect)
         return game_over
@@ -190,12 +201,16 @@ class World():
                 if tile == 3:
                     blob = Enemy(col_count * tile_size, row_count * tile_size + 7)
                     blob_group.add(blob)
-                if tile == 7:
-                    platform = Platform(col_count * tile_size, row_count * tile_size + 7)
-                    platform_group.add(platform)
                 if tile == 6:
                     lava = Lava(col_count * tile_size, row_count * tile_size + (tile_size // 2))
                     lava_group.add(lava)
+                if tile == 7:
+                    platform = Platform(col_count * tile_size, row_count * tile_size + 7)
+                    platform_group.add(platform)
+                    self.tile_list.append((platform.image, platform.rect))
+                if tile == 8:
+                    door = Door(col_count * tile_size, row_count * tile_size)
+                    exit_group.add(door)
                 col_count += 1
             row_count += 1
 
@@ -227,6 +242,23 @@ class Platform(pygame.sprite.Sprite):
         for tile in self.tile_list:
             screen.blit(tile[0], tile[1])
             pygame.draw.rect(screen, (255, 255, 255), tile[1], 2)
+
+
+class Door(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load('exit.png')
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.move_counter = 0
+
+
+    def draw(self):
+        for tile in self.tile_list:
+            screen.blit(tile[0], tile[1])
+            pygame.draw.rect(screen, (255, 255, 255), tile[1], 2)
+
 
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -261,33 +293,34 @@ class Lava(pygame.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
 
+
 world_data = [
-[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 1],
-[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 2, 2, 1],
-[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 7, 0, 5, 0, 0, 0, 1],
-[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-[1, 7, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-[1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 7, 0, 0, 0, 0, 1],
-[1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 7, 0, 0, 3, 0, 0, 0, 3, 0, 0, 2, 2, 1],
-[1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 1],
-[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1],
-[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 2, 0, 0, 2, 2, 2, 2, 2, 1],
-[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 6, 1, 6, 6, 6, 6, 6, 1, 1, 1, 1, 1, 1],
-[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-[1, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-[1, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 2, 2, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 7, 0, 5, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 7, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 7, 0, 0, 0, 0, 1],
+    [1, 0, 2, 2, 6, 6, 2, 2, 0, 0, 0, 0, 7, 0, 7, 0, 0, 3, 0, 0, 3, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 4, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 2, 0, 0, 2, 2, 1, 1, 2, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 6, 1, 6, 6, 6, 6, 6, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 2, 6, 6, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ]
 
-player_MARIO = Player(50, SCREEN_HEIGHT - 65)
 blob_group = pygame.sprite.Group()
 lava_group = pygame.sprite.Group()
 platform_group = pygame.sprite.Group()
+exit_group = pygame.sprite.Group()
 world = World(world_data)
 
 
@@ -431,11 +464,7 @@ def count_cactus(BLOCKS):
         if BLOCKS[i].x + BLOCKS[i].width < user_x:
             dino_score += 1
 
-
-blocks = []  # list of bloks for dino
 cactus_image = []
-cactus_option = [50, 400, 72, 370, 60, 450]
-
 block = pygame.image.load("block.png")
 block.set_colorkey((255, 255, 255))
 cactus_image.append(block)
@@ -457,7 +486,6 @@ cloud_img.append(cloud1)
 cloud_img.append(cloud2)
 choice = 0  # change kind of clouds
 
-img_count = 0
 DINO_img = [pygame.image.load("Dino0.png"), pygame.image.load("Dino1.png"), pygame.image.load("Dino2.png"),
             pygame.image.load("Dino3.png"), pygame.image.load("Dino4.png")]
 
@@ -496,7 +524,9 @@ num_of_bubles = 50
 
 # loading animation
 for i in range(num_of_bubles):
-    ALL_BUBLE_IMG.append(pygame.image.load("ghost.png"))
+    ani = pygame.image.load("buble.png")
+    ani.set_colorkey((255, 255, 255))
+    ALL_BUBLE_IMG.append(ani)
     ALL_BUBLEX.append(randint(20, 780))
     ALL_BUBLEY.append(randint(20, 550))
     ALL_BUBLEX_CHANGE.append(5)
@@ -536,7 +566,8 @@ sound = pygame.mixer.Sound("sound.mp3")
 # counters of scene
 timer = 0
 loading = 0
-Status = ["menu", "loading", "parametrs", "play", "dino", "fortune", "move_return", "prison", "mario", "bankrupt", "birthday"]
+Status = ["menu", "loading", "parametrs", "play", "dino", "fortune", "move_return", "prison", "mario", "bankrupt",
+          "birthday", "results"]
 counter = 0
 status = Status[counter]
 n = 3
@@ -544,22 +575,27 @@ n = 3
 prison_score = 0
 dino_score = 0
 
-play_game = '34567'
-player = 0
-num_of_players = 1
-list_scores = []
+num_of_sec = 600
+
+record = 0  # if current score is more then last scores in tabel
+
+player = 0  # current player
+num_of_players = 1  # count players
+list_scores = []  # players scores
 running = True
+
 while running:
     for event in pygame.event.get():  # events
         if event.type == pygame.KEYDOWN:  # events of keyboard
             if event.key == K_ESCAPE:  # exit with key esc
                 running = False
             if event.key == pygame.K_RIGHT:  # OPEN NEXT SCENE
-                if counter <= 9:
+                if counter <= 11:
                     counter += 1
                 status = Status[counter]
             if event.key == pygame.K_LEFT:  # OPEN LAST SCENE
-                counter -= 1
+                if counter >= 1:
+                    counter -= 1
                 status = Status[counter]
             if event.key == pygame.K_RETURN:
                 pause()
@@ -573,13 +609,14 @@ while running:
             running = False
 
         if event.type == pygame.MOUSEBUTTONDOWN:  # click button
+            print(pygame.mouse.get_pos())
             if pygame.mouse.get_pos() >= (650, 252):
                 if pygame.mouse.get_pos() <= (752, 349):
                     if counter == 0:
-                        menu_sound.stop()
+                        #menu_sound.stop()
                         counter += 1
                         status = "loading"
-                        sound.play()
+                        #sound.play()
             if counter == 2:  # check cursor
                 if pygame.mouse.get_pos() >= (390, 180):  # selected 2
                     if pygame.mouse.get_pos() <= (450, 240):
@@ -609,32 +646,12 @@ while running:
                         counter += 1
                         status = Status[counter]
 
-            if counter == 3:  # play menu, main map of the game
-                if pygame.mouse.get_pos() >= (50, 50):
-                    if pygame.mouse.get_pos() <= (170, 120):
-                        counter += 1
-                        status = "dino"
-                if pygame.mouse.get_pos() >= (170, 100):
-                    if pygame.mouse.get_pos() <= (290, 170):
-                        counter += 2
-                        status = "fortune"
-                if pygame.mouse.get_pos() >= (130, 170):
-                    if pygame.mouse.get_pos() <= (220, 280):
-                        counter += 3
-                        status = "move_return"
-                if pygame.mouse.get_pos() >= (220, 170):
-                    if pygame.mouse.get_pos() <= (290, 310):
-                        counter += 4
-                        status = "prison"
-
+            if counter == 3:
                 if pygame.mouse.get_pos() >= (30, 470):  # push cubics, get game
                     if pygame.mouse.get_pos() <= (130, 570):
                         flag = 0
-                        if n >= 9:
-                            n = 3
-                            counter = 3
-                        else:
-                            n += 1
+                        n = randint(40, 90)//10
+                        counter = n
                         status = Status[n]
 
                 if flag == 1:  # when the message of fortune
@@ -684,6 +701,7 @@ while running:
                             for i in range(num_of_players):
                                 if i != player:
                                     list_scores[i] -= 150
+
                             flag = 0
 
             if counter == 5:  # the wheel of fortune
@@ -728,67 +746,67 @@ while running:
                         status = Status[counter]
                         flag = 5
 
-
-
-        if counter == 2:  # check cursor
-            if pygame.mouse.get_pos() >= (390, 180):  # selected 2
-                if pygame.mouse.get_pos() <= (450, 240):
-                    if on_button != 2:
-                        button1 = pygame.image.load("two_players_click.png")
-                        button1.set_colorkey((255, 255, 255))
+        if event.type == pygame.MOUSEMOTION:
+            if counter == 2:  # check cursor
+                if pygame.mouse.get_pos() >= (390, 180):  # selected 2
+                    if pygame.mouse.get_pos() <= (450, 240):
+                        if on_button != 2:
+                            button1 = pygame.image.load("two_players_click.png")
+                            button1.set_colorkey((255, 255, 255))
+                    else:
+                        if on_button != 2:
+                            button1 = pygame.image.load("two_players.png")
+                            button1.set_colorkey((255, 255, 255))
                 else:
                     if on_button != 2:
                         button1 = pygame.image.load("two_players.png")
                         button1.set_colorkey((255, 255, 255))
-            else:
-                if on_button != 2:
-                    button1 = pygame.image.load("two_players.png")
-                    button1.set_colorkey((255, 255, 255))
 
-            if pygame.mouse.get_pos() >= (490, 220):  # selected 3
-                if pygame.mouse.get_pos() <= (580, 310):
-                    if on_button != 3:
-                        button2 = pygame.image.load("three_players_click.png")
-                        button2.set_colorkey((255, 255, 255))
+                if pygame.mouse.get_pos() >= (490, 220):  # selected 3
+                    if pygame.mouse.get_pos() <= (580, 310):
+                        if on_button != 3:
+                            button2 = pygame.image.load("three_players_click.png")
+                            button2.set_colorkey((255, 255, 255))
+                    else:
+                        if on_button != 3:
+                            button2 = pygame.image.load("three_players.png")
+                            button2.set_colorkey((255, 255, 255))
                 else:
                     if on_button != 3:
                         button2 = pygame.image.load("three_players.png")
                         button2.set_colorkey((255, 255, 255))
-            else:
-                if on_button != 3:
-                    button2 = pygame.image.load("three_players.png")
-                    button2.set_colorkey((255, 255, 255))
 
-            if pygame.mouse.get_pos() >= (630, 200):  # selected 4
-                if pygame.mouse.get_pos() <= (690, 260):
-                    if on_button != 4:
-                        button3 = pygame.image.load("fore_players_click.png")
-                        button3.set_colorkey((255, 255, 255))
+                if pygame.mouse.get_pos() >= (630, 200):  # selected 4
+                    if pygame.mouse.get_pos() <= (690, 260):
+                        if on_button != 4:
+                            button3 = pygame.image.load("fore_players_click.png")
+                            button3.set_colorkey((255, 255, 255))
+                    else:
+                        if on_button != 4:
+                            button3 = pygame.image.load("fore_players.png")
+                            button3.set_colorkey((255, 255, 255))
                 else:
                     if on_button != 4:
                         button3 = pygame.image.load("fore_players.png")
                         button3.set_colorkey((255, 255, 255))
-            else:
-                if on_button != 4:
-                    button3 = pygame.image.load("fore_players.png")
-                    button3.set_colorkey((255, 255, 255))
 
-            if pygame.mouse.get_pos() >= (600, 450):
-                if pygame.mouse.get_pos() <= (750, 550):
-                    button = pygame.image.load("go_play_click.png")
+                if pygame.mouse.get_pos() >= (600, 450):
+                    if pygame.mouse.get_pos() <= (750, 550):
+                        button = pygame.image.load("go_play_click.png")
+                    else:
+                        button = pygame.image.load("go_play.png")
                 else:
                     button = pygame.image.load("go_play.png")
-            else:
-                button = pygame.image.load("go_play.png")
 
-        if counter == 3:
-            if pygame.mouse.get_pos() >= (30, 470):  # push cubics, get random game
-                if pygame.mouse.get_pos() <= (130, 570):
-                    kubs = pygame.image.load("kubics_click.png")
+            if counter == 3:
+                if pygame.mouse.get_pos() >= (30, 470):  # push cubics, get random game
+                    if pygame.mouse.get_pos() <= (130, 570):
+                        kubs = pygame.image.load("kubics_click.png")
+                    else:
+                        kubs = pygame.image.load("kubics.png")
                 else:
                     kubs = pygame.image.load("kubics.png")
-            else:
-                kubs = pygame.image.load("kubics.png")
+
 
     screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])  # set screen
     icon = pygame.image.load("icon.png").convert()
@@ -798,10 +816,10 @@ while running:
         pygame.display.set_caption("PATRIK")
         background = pygame.image.load("back.png").convert()
         screen.blit(background, (0, 0))
-        menu_sound.play()
+        #menu_sound.play()
 
-        button = pygame.image.load("pusk.png")
-        screen.blit(button, (650, 252))
+        button_pusk = pygame.image.load("pusk.png")
+        screen.blit(button_pusk, (650, 252))
 
         pygame.draw.circle(screen, (ALL_COLORS[randint(0, 7)]), (100, 100), 30)  # gosts
         pygame.draw.circle(screen, (ALL_COLORS[randint(0, 7)]), (700, 500), 30)
@@ -813,7 +831,7 @@ while running:
         pygame.time.wait(30)
 
     if status == "loading":
-        background = pygame.image.load("background.png").convert()
+        background = pygame.image.load("gradient.png")
         screen.blit(background, (0, 0))
         timer += 1
 
@@ -861,30 +879,17 @@ while running:
         screen.blit(button, (600, 450))
 
     if status == "play":
-        background = pygame.image.load("play.png").convert()
+        background = pygame.image.load("playgl.png")
         screen.blit(background, (0, 0))
-        start_dino = pygame.image.load("first.png")
-        screen.blit(start_dino, (50, 50))
-        start_fortune = pygame.image.load("second.png")
-        screen.blit(start_fortune, (170, 100))
-        start_return = pygame.image.load("third.png")
-        screen.blit(start_return, (130, 170))
-        start_prison = pygame.image.load("forth.png")
-        screen.blit(start_prison, (220, 170))
-        start_mario = pygame.image.load("fiveth.png")
-        screen.blit(start_mario, (290, 110))
-        start_bunkrupt = pygame.image.load("sixth.png")
-        screen.blit(start_bunkrupt, (420, 100))
-        start_birthday = pygame.image.load("seventh.png")
-        screen.blit(start_birthday, (400, 300))
-        start_logik = pygame.image.load("eighth.png")
-        screen.blit(start_logik, (480, 230))
+        print_message(str(count_down()), 10, 10)
 
+        if num_of_sec == 0:
+            counter = 11
+            status = Status[counter]
 
-        score_message = pygame.image.load("score.png")
-        score_message.set_colorkey((255, 255, 255))
-        screen.blit(score_message, (550, 20))
-        print_message('player ' + str(player + 1), 400, 70)
+        flag_open = 0  # for write records
+
+        print_message('player ' + str(player + 1), 300, 20, (255, 255, 255))
         print_score(str(list_scores[player]), 600, 70)
 
         screen.blit(kubs, (30, 470))
@@ -892,7 +897,14 @@ while running:
         prison_x = randint(0, 800)
         prison_y = randint(0, 600)
 
+        # GAE ARI
+        game_over = 0
+        player_MARIO = Player(50, SCREEN_HEIGHT - 65)
+
         # dino in playing
+        img_count = 0
+        blocks = []  # list of bloks for dino
+        cactus_option = [50, 400, 72, 370, 60, 450]
         BLOCKS = creat_cactus_arr(blocks)
         user_x = SCREEN_WIDTH // 4
         user_y = SCREEN_HEIGHT - 198
@@ -927,6 +939,11 @@ while running:
         if flag == 5:  # message from birthday
             background = pygame.image.load("present.png")
             screen.blit(background, (0, 0))
+
+        if flag == 6:
+            mario_message = pygame.image.load("mario_message.png")
+            screen.blit(mario_message, (250, 250))
+            print_message("you win 500!", 300, 350)
 
     if status == "dino":
         background = pygame.image.load("play.png").convert()
@@ -995,16 +1012,22 @@ while running:
             blob_group.update()
             platform_group.update()
         else:
-            if player_MARIO.rect.y < -30:
-                list_scores[player] -= 200
+            if game_over == -1:
+                if player_MARIO.rect.y < -30:
+                    list_scores[player] -= 200
+                    counter = 3
+                    status = "play"
+                    flag = 4
+            else:
+                list_scores[player] += 500
                 counter = 3
                 status = "play"
-                flag = 4
-
+                flag = 6
 
         blob_group.draw(screen)
         lava_group.draw(screen)
         platform_group.draw(screen)
+        exit_group.draw(screen)
 
         game_over = player_MARIO.update(game_over)
 
@@ -1017,6 +1040,35 @@ while running:
         counter = 10
         background = pygame.image.load("birthday.png")
         screen.blit(background, (0, 0))
+
+    if status == "results":
+        background = pygame.image.load("results.png")
+        screen.blit(background, (0, 0))
+
+        f = open("scores.txt")
+        lines = (f.read())
+        k = 0
+        m = 0
+        for i in lines:
+            k = int(i)
+            if k > m:
+                m = k
+        victory = max(list_scores)
+        index_player = list_scores.index(victory) + 1
+        print(victory)
+        f.close()
+
+        if flag_open == 0:
+            f = open("scores.txt", "a")
+            if victory > m:
+                f.write(str(victory))
+                f.close()
+                flag_open = 1
+                record = 1
+        if record == 1:
+            print('you set new record!', 300, 300)
+        print_message(('player ' + str(index_player) + ' WINS!'), 300, 325)
+        print_message(('with score' + str(victory)), 350, 350)
 
 
     pygame.display.flip()  # update the window
