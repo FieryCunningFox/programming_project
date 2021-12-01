@@ -604,6 +604,9 @@ list_scores = []  # players scores
 running = True
 screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])  # set screen
 
+icon = pygame.image.load("icon.png").convert()
+pygame.display.set_icon(icon)
+
 while running:
     for event in pygame.event.get():  # events
         if event.type == pygame.KEYDOWN:  # events of keyboard
@@ -828,9 +831,6 @@ while running:
                         kubs = pygame.image.load("kubics.png")
                 else:
                     kubs = pygame.image.load("kubics.png")
-
-    icon = pygame.image.load("icon.png").convert()
-    pygame.display.set_icon(icon)
 
     if status == "menu":
         pygame.display.set_caption("PATRIK")
