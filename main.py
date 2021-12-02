@@ -7,10 +7,6 @@ from pygame.locals import *
 pygame.init()  # connect all functions of library
 pygame.font.init()
 
-# size of display
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
-
 
 def count_down():  # count down time of playing
     global num_of_sec
@@ -22,7 +18,7 @@ def count_down():  # count down time of playing
         return min_sec_format
 
 
-def print_text(message, x, y, font_color=(0, 0, 0), font_type="PingPong.ttf", font_size=30):
+def print_text(message, x, y, font_color=(0, 0, 0), font_type="PingPong.ttf", font_size=40):
     global screen
     font_type = pygame.font.Font(font_type, font_size)
     text = font_type.render(message, True, font_color)
@@ -62,11 +58,11 @@ def pause():
         clock.tick(15)
 
 
+# size of display
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+
 # MINI GAME MARIO
-tile_size = 30
-game_over = 0
-
-
 class Player:  # CREATE PERSON
 
     def __init__(self, x, y):
@@ -101,21 +97,25 @@ class Player:  # CREATE PERSON
         if game_over == 0:
 
             key = pygame.key.get_pressed()
-            if key[pygame.K_j]:
+            if key[pygame.K_LEFT]:
                 dx -= 3
                 self.counterp += 1
-                self.direction -= 1
-            if key[pygame.K_k]:
+                self.direction = -1
+            if key[pygame.K_RIGHT]:
                 dx += 3
                 self.counterp += 1
                 self.direction = 1
             if key[pygame.K_SPACE] and self.jumped is False:
-                if self.rect.y > 15:
-                    self.vel_y -= 11
+                self.vel_y = 0
+                if self.rect.y > 70:
+                    self.vel_y -= 10
+                    self.jumped = True
+                elif self.rect.y > 30:
+                    self.vel_y -= 6
                     self.jumped = True
             if key[pygame.K_SPACE] is False:
                 self.jumped = False
-            if key[pygame.K_j] == False and key[pygame.K_k] is False:
+            if key[pygame.K_LEFT] is False and key[pygame.K_RIGHT] is False:
                 self.counterp = 0
                 self.direction = 0
                 if self.direction == 1:
@@ -162,10 +162,9 @@ class Player:  # CREATE PERSON
             if self.rect.bottom > SCREEN_HEIGHT:
                 self.rect.bottom = SCREEN_HEIGHT
                 dy = 0
-
         elif game_over == -1:
             self.image = self.dead_image
-            if self.rect.y > -50:
+            if self.rect.y > -55:
                 self.rect.y -= 5
 
         screen.blit(self.image, self.rect)
@@ -299,11 +298,11 @@ class Lava(pygame.sprite.Sprite):
 world_data = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 2, 2, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 7, 0, 5, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 7, 0, 2, 2, 2, 2, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 7, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 7, 0, 0, 0, 0, 7, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1],
     [1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 7, 0, 0, 0, 0, 1],
     [1, 0, 2, 2, 6, 6, 2, 2, 0, 0, 0, 0, 7, 0, 7, 0, 0, 3, 0, 0, 3, 0, 0, 0, 0, 0, 1],
@@ -319,6 +318,9 @@ world_data = [
     [1, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ]
 
+tile_size = 30  # size in world
+game_over = 0  # status of current playing
+
 blob_group = pygame.sprite.Group()
 lava_group = pygame.sprite.Group()
 platform_group = pygame.sprite.Group()
@@ -333,6 +335,7 @@ class Dino:
         self.img_count = 0
         self.jump_counter = 30
         self.make_jump = False
+        self.vel_y = 0
         for num in range(0, 5):
             img = pygame.image.load(f'Dino{num}.png')
             self.images.append(img)
@@ -399,7 +402,6 @@ class Dino:
                             if barriers[i].x <= self.rect.x + 5 <= barriers[i].x + barriers[i].width:
                                 return True
         return False
-
 
 
 class Object(pygame.sprite.Sprite):
@@ -510,8 +512,8 @@ choice = 0  # change kind of clouds
 fortune_wheel = []
 rul_counter = 0
 flag = 0
-fortune_text = ["YOU WIN! + 1000", "SORRY, -100", "GOOD LUCK! + 50", "NOT AFRAID, - 150", "IT IS SO GOOD, + 10"]
-fortune_score = [1000, -100, 50, -150, 10]
+fortune_text = ["YOU WIN! + 1000", "SORRY, - 100", "GOOD LUCK! + 505", "NOT AFRAID, - 150", "IT IS SO GOOD, + 100", "NOT BAD + 20", "DO NOT AFRAID - 80", "GOOD JOB! + 290"]
+fortune_score = [1000, -100, 505, -150, 100, 20, -80, 290]
 message_counter = len(fortune_text)
 ruletka1 = pygame.image.load("ruletka.png")  # 1
 ruletka1.set_colorkey((255, 255, 255))
@@ -536,7 +538,7 @@ ALL_BUBLEX = []
 ALL_BUBLEY = []
 ALL_BUBLEX_CHANGE = []
 ALL_BUBLEY_CHANGE = []
-num_of_bubles = 50
+num_of_bubles = 110
 
 # loading animation
 for i in range(num_of_bubles):
@@ -601,11 +603,16 @@ record = 0  # if current score is more then last scores in tabel
 player = 0  # current player
 num_of_players = 1  # count players
 list_scores = []  # players scores
+push_button = 0
+push_cub = 0
 running = True
 screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])  # set screen
 
 icon = pygame.image.load("icon.png").convert()
 pygame.display.set_icon(icon)
+pygame.display.set_caption("PATRIK")
+
+count_parametrs = 0
 
 while running:
     for event in pygame.event.get():  # events
@@ -613,23 +620,103 @@ while running:
             if event.key == K_ESCAPE:  # exit with key esc
                 running = False
             if event.key == pygame.K_RIGHT:  # OPEN NEXT SCENE
-                if counter <= 11:
-                    counter += 1
-                status = Status[counter]
+                if counter == 2:
+                    on_button = 0
+                    button = pygame.image.load("go_play.png")
+                    push_button = 0
+                    if count_parametrs < 3:
+                        count_parametrs += 1
+                        if count_parametrs == 1:
+                            button1 = pygame.image.load("two_players_click.png")
+                            button1.set_colorkey((255, 255, 255))
+                            button2 = pygame.image.load("three_players.png")
+                            button2.set_colorkey((255, 255, 255))
+                            button3 = pygame.image.load("fore_players.png")
+                            button3.set_colorkey((255, 255, 255))
+                        elif count_parametrs == 2:
+                            button1 = pygame.image.load("two_players.png")
+                            button1.set_colorkey((255, 255, 255))
+                            button2 = pygame.image.load("three_players_click.png")
+                            button2.set_colorkey((255, 255, 255))
+                            button3 = pygame.image.load("fore_players.png")
+                            button3.set_colorkey((255, 255, 255))
+                        elif count_parametrs == 3:
+                            button1 = pygame.image.load("two_players.png")
+                            button1.set_colorkey((255, 255, 255))
+                            button2 = pygame.image.load("three_players.png")
+                            button2.set_colorkey((255, 255, 255))
+                            button3 = pygame.image.load("fore_players_click.png")
+                            button3.set_colorkey((255, 255, 255))
             if event.key == pygame.K_LEFT:  # OPEN LAST SCENE
-                if counter >= 1:
-                    counter -= 1
-                status = Status[counter]
+                if counter == 2:
+                    on_button = 0
+                    button = pygame.image.load("go_play.png")
+                    push_button = 0
+                    if count_parametrs > 0:
+                        count_parametrs -= 1
+                        if count_parametrs == 1:
+                            button1 = pygame.image.load("two_players_click.png")
+                            button1.set_colorkey((255, 255, 255))
+                            button2 = pygame.image.load("three_players.png")
+                            button2.set_colorkey((255, 255, 255))
+                            button3 = pygame.image.load("fore_players.png")
+                            button3.set_colorkey((255, 255, 255))
+                        elif count_parametrs == 2:
+                            button1 = pygame.image.load("two_players.png")
+                            button1.set_colorkey((255, 255, 255))
+                            button2 = pygame.image.load("three_players_click.png")
+                            button2.set_colorkey((255, 255, 255))
+                            button3 = pygame.image.load("fore_players.png")
+                            button3.set_colorkey((255, 255, 255))
+                        elif count_parametrs == 3:
+                            button1 = pygame.image.load("two_players.png")
+                            button1.set_colorkey((255, 255, 255))
+                            button2 = pygame.image.load("three_players.png")
+                            button2.set_colorkey((255, 255, 255))
+                            button3 = pygame.image.load("fore_players_click.png")
+                            button3.set_colorkey((255, 255, 255))
             if event.key == pygame.K_RETURN:
                 if counter == 2:
-                    list_scores = []
-                    for i in range(num_of_players):
-                        list_scores.append(0)
-                    player = 0
-                    counter += 1
-                    status = Status[counter]
+                    if push_button == 0 and count_parametrs != 0:
+                        button = pygame.image.load("go_play_click.png")
+                        if count_parametrs == 1:
+                            num_of_players = 2
+                            on_button = 2
+                            button1 = pygame.image.load("two_players_pressed.png")
+                            button1.set_colorkey((255, 255, 255))
+                        elif count_parametrs == 2:
+                            num_of_players = 3
+                            on_button = 3
+                            button2 = pygame.image.load("three_players_pressed.png")
+                            button2.set_colorkey((255, 255, 255))
+                        elif count_parametrs == 3:
+                            num_of_players = 4
+                            on_button = 4
+                            button3 = pygame.image.load("fore_players_pressed.png")
+                            button3.set_colorkey((255, 255, 255))
+                        list_scores = []
+                        for i in range(num_of_players):
+                            list_scores.append(0)
+                        player = 0
+                        push_button += 1
+                    else:
+                        if count_parametrs != 0:
+                            counter += 1
+                            status = Status[counter]
                 else:
                     pause()
+            if event.key == pygame.K_SPACE:  # push cubics, get game
+                if counter == 3 and flag == 0:
+                    if push_cub == 0:
+                        kubs = pygame.image.load("kubics_click.png")
+                        push_cub += 1
+                    else:
+                        push_cub = 0
+                        flag = 0
+                        n = randint(40, 90) // 10
+                        counter = n
+                        status = Status[n]
+                        kubs = pygame.image.load("kubics.png")
 
         if event.type == pygame.QUIT:
             running = False
@@ -662,23 +749,7 @@ while running:
                         button3 = pygame.image.load("fore_players_pressed.png")
                         button3.set_colorkey((255, 255, 255))
 
-                if pygame.mouse.get_pos() >= (600, 450):
-                    if pygame.mouse.get_pos() <= (750, 550):
-                        list_scores = []
-                        for i in range(num_of_players):
-                            list_scores.append(0)
-                        player = 0
-                        counter += 1
-                        status = Status[counter]
-
-            elif counter == 3:
-                if pygame.mouse.get_pos() >= (30, 470):  # push cubics, get game
-                    if pygame.mouse.get_pos() <= (130, 570):
-                        flag = 0
-                        n = randint(40, 90) // 10
-                        counter = n
-                        status = Status[n]
-
+            elif counter == 3:  # main map
                 if flag == 1:  # when the message of fortune
                     if pygame.mouse.get_pos() >= (250, 250):
                         if pygame.mouse.get_pos() <= (550, 450):
@@ -728,6 +799,15 @@ while running:
                                     list_scores[i] -= 150
 
                             flag = 0
+                elif flag == 6:
+                    if pygame.mouse.get_pos() >= (250, 250):
+                        if pygame.mouse.get_pos() <= (550, 450):
+                            flag = 0
+                            dino_score = 0
+                            if player == num_of_players - 1:
+                                player = 0
+                            else:
+                                player += 1
 
             elif counter == 5:  # the wheel of fortune
                 if pygame.mouse.get_pos() >= (200, 150):
@@ -776,6 +856,7 @@ while running:
                 if pygame.mouse.get_pos() >= (390, 180):  # selected 2
                     if pygame.mouse.get_pos() <= (450, 240):
                         if on_button != 2:
+                            button = pygame.image.load("go_play.png")
                             button1 = pygame.image.load("two_players_click.png")
                             button1.set_colorkey((255, 255, 255))
                     else:
@@ -790,6 +871,7 @@ while running:
                 if pygame.mouse.get_pos() >= (490, 220):  # selected 3
                     if pygame.mouse.get_pos() <= (580, 310):
                         if on_button != 3:
+                            button = pygame.image.load("go_play.png")
                             button2 = pygame.image.load("three_players_click.png")
                             button2.set_colorkey((255, 255, 255))
                     else:
@@ -804,6 +886,7 @@ while running:
                 if pygame.mouse.get_pos() >= (630, 200):  # selected 4
                     if pygame.mouse.get_pos() <= (690, 260):
                         if on_button != 4:
+                            button = pygame.image.load("go_play.png")
                             button3 = pygame.image.load("fore_players_click.png")
                             button3.set_colorkey((255, 255, 255))
                     else:
@@ -815,14 +898,6 @@ while running:
                         button3 = pygame.image.load("fore_players.png")
                         button3.set_colorkey((255, 255, 255))
 
-                if pygame.mouse.get_pos() >= (600, 450):
-                    if pygame.mouse.get_pos() <= (750, 550):
-                        button = pygame.image.load("go_play_click.png")
-                    else:
-                        button = pygame.image.load("go_play.png")
-                else:
-                    button = pygame.image.load("go_play.png")
-
             elif counter == 3:
                 if pygame.mouse.get_pos() >= (30, 470):  # push cubics, get random game
                     if pygame.mouse.get_pos() <= (130, 570):
@@ -833,7 +908,6 @@ while running:
                     kubs = pygame.image.load("kubics.png")
 
     if status == "menu":
-        pygame.display.set_caption("PATRIK")
         background = pygame.image.load("back.png").convert()
         screen.blit(background, (0, 0))
         # menu_sound.play()
@@ -880,7 +954,7 @@ while running:
                 ALL_BUBLEX[i] += ALL_BUBLEX_CHANGE[i]
             buble(ALL_BUBLEX[i], ALL_BUBLEY[i], i)
 
-        if timer > 500:
+        if timer > 520:
             counter += 1
             status = "parametrs"
 
@@ -888,13 +962,13 @@ while running:
         background = pygame.image.load("parametrs.png")
         screen.blit(background, (0, 0))
         title = "PLAYING OPTIONS"
-        print_message(title, 120, 50, font_size=45)
+        print_message(title, 120, 50, font_size=54)
         option = "number of players:"
-        print_message(option, 50, 200)
+        print_message(option, 56, 200)
 
+        screen.blit(button1, (390, 180))
         screen.blit(button2, (490, 220))
         screen.blit(button3, (630, 200))
-
         screen.blit(button, (600, 450))
 
     if status == "play":
@@ -902,14 +976,14 @@ while running:
         screen.blit(background, (0, 0))
         print_message(str(count_down()), 10, 10)
 
-        if num_of_sec == 0:
+        if num_of_sec == 0:  # time ends, end of play
             counter = 11
             status = Status[counter]
 
         flag_open = 0  # for write records
 
-        print_message('player ' + str(player + 1), 300, 20, (255, 255, 255))
-        print_score(str(list_scores[player]), 600, 70)
+        print_message('PLAYER ' + str(player + 1), 300, 20)
+        print_text(str(list_scores[player]), 600, 70)
 
         screen.blit(kubs, (30, 470))
 
@@ -1022,12 +1096,18 @@ while running:
         screen.blit(background, (0, 0))
         world.draw()
 
+        blob_group.draw(screen)
+        lava_group.draw(screen)
+        platform_group.draw(screen)
+        exit_group.draw(screen)
+
+        game_over = player_MARIO.update(game_over)
         if game_over == 0:
             blob_group.update()
             platform_group.update()
         else:
             if game_over == -1:
-                if player_MARIO.rect.y < -30:
+                if player_MARIO.rect.y < -50:
                     list_scores[player] -= 200
                     counter = 3
                     status = "play"
@@ -1038,12 +1118,6 @@ while running:
                 status = "play"
                 flag = 6
 
-        blob_group.draw(screen)
-        lava_group.draw(screen)
-        platform_group.draw(screen)
-        exit_group.draw(screen)
-
-        game_over = player_MARIO.update(game_over)
 
     if status == 'bankrupt':
         counter = 9
@@ -1081,8 +1155,8 @@ while running:
                 record = 1
         if record == 1:
             print('you set new record!', 300, 300)
-        print_message(('player ' + str(index_player) + ' WINS!'), 300, 325)
-        print_message(('with score' + str(victory)), 350, 350)
+        print_message(('player ' + str(index_player) + ' WINS!'), 300, 310)
+        print_message(('with score   ' + str(victory)), 340, 340)
 
     pygame.display.flip()  # update the window
     clock.tick(FPS)
