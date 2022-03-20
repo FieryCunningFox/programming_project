@@ -372,13 +372,13 @@ class Dino:
 
     def check_collission(self, barriers):
         for i in range(3):
-            if self.rect.y + 98 >= barriers[i].y:
+            if self.rect.y + 90 >= barriers[i].y:
                 if barriers[i] == 450:  # little cactus
                     if not self.make_jump:
                         if barriers[i].x <= self.rect.x + 40 <= barriers[i].x + barriers[i].width:
                             return True
                     elif self.jump_counter >= 0:
-                        if self.rect.y + 93 >= barriers[i].y:
+                        if self.rect.y + 90 >= barriers[i].y:
                             if barriers[i].x <= self.rect.x + 40 <= barriers[i].x + barriers[i].width:
                                 return True
                     else:
@@ -390,11 +390,11 @@ class Dino:
                         if barriers[i].x <= self.rect.x + 65 <= barriers[i].x + barriers[i].width:
                             return True
                     elif self.jump_counter == 10:
-                        if self.rect.y + 93 >= barriers[i].y:
+                        if self.rect.y + 90 >= barriers[i].y:
                             if barriers[i].x <= self.rect.x + 65 <= barriers[i].x + barriers[i].width:
                                 return True
                     elif self.jump_counter >= -1:
-                        if self.rect.y + 93 >= barriers[i].y:
+                        if self.rect.y + 90 >= barriers[i].y:
                             if barriers[i].x <= self.rect.x + 45 <= barriers[i].x + barriers[i].width:
                                 return True
                     else:
@@ -451,7 +451,7 @@ def find_radius(array):
     radius = 0
     if maximum < SCREEN_WIDTH:
         radius = SCREEN_WIDTH
-        if radius - maximum < 50:
+        if radius - maximum < 70:
             radius += 150
         else:
             radius = maximum
@@ -460,7 +460,7 @@ def find_radius(array):
     if choice == 0:
         radius += randint(10, 15)
     else:
-        radius += randint(200, 350)
+        radius += randint(250, 400)
     return radius
 
 
@@ -596,7 +596,7 @@ prison_y = 0
 dino_score = 0
 vivod = 0
 
-num_of_sec = 600
+num_of_sec = 300
 
 record = 0  # if current score is more then last scores in tabel
 
@@ -713,7 +713,7 @@ while running:
                     else:
                         push_cub = 0
                         flag = 0
-                        n = randint(40, 90) // 10
+                        n = randint(40, 109) // 10
                         counter = n
                         status = Status[n]
                         kubs = pygame.image.load("kubics.png")
@@ -1133,28 +1133,27 @@ while running:
         background = pygame.image.load("results.png")
         screen.blit(background, (0, 0))
 
-        f = open("scores.txt")
-        lines = (f.read())
-        k = 0
-        m = 0
-        for i in lines:
-            k = int(i)
-            if k > m:
-                m = k
+        #f = open("scores.txt")
+        #lines = (f.read())
+        #k = 0
+        #m = 0
+        #for i in lines:
+            #k = int(i)
+            #if k > m:
+                #m = k
         victory = max(list_scores)
         index_player = list_scores.index(victory) + 1
-        print(victory)
-        f.close()
+        #f.close()
 
-        if flag_open == 0:
-            f = open("scores.txt", "a")
-            if victory > m:
-                f.write(str(victory))
-                f.close()
-                flag_open = 1
-                record = 1
-        if record == 1:
-            print('you set new record!', 300, 300)
+        #if flag_open == 0:
+            #f = open("scores.txt", "a")
+            #if victory > m:
+                #f.write(str(victory))
+                #f.close()
+                #flag_open = 1
+                #record = 1
+        #if record == 1:
+            #print('you set new record!', 300, 300)
         print_message(('player ' + str(index_player) + ' WINS!'), 300, 310)
         print_message(('with score   ' + str(victory)), 340, 340)
 
